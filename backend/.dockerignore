@@ -1,0 +1,6 @@
+.git
+.github
+var/*
+vendor/*
+infra/volumes
+scripts
