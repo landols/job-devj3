@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Rating, Spinner } from 'flowbite-react';
+import { Button, Rating, Spinner, Label, Select } from 'flowbite-react';
 
 const App = props => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('newest');
 
   const fetchMovies = () => {
     setLoading(true);
 
-    return fetch('http://localhost:8000/movies')
+    let qs = new URLSearchParams({
+      sortBy
+    })
+
+    return fetch('http://localhost:8000/movies?'+qs.toString())
       .then(response => response.json())
       .then(data => {
         setMovies(data);
@@ -18,11 +23,15 @@ const App = props => {
 
   useEffect(() => {
     fetchMovies();
-  }, []);
+  }, [sortBy]);
 
   return (
     <Layout>
       <Heading />
+      <SortBy
+        value={sortBy}
+        onChange={value => setSortBy(value)}
+      />
 
       <MovieList loading={loading}>
         {movies.map((item, key) => (
@@ -56,6 +65,25 @@ const Heading = props => {
     </div>
   );
 };
+
+const SortBy = props => {
+  return (
+    <div className="max-w-md mb-8 lg:mb-16">
+      <div className="mb-2 block">
+        <Label htmlFor="sortBy" value="Sort By" />
+      </div>
+      <Select
+        id="sortBy"
+        required
+        value={props.value}
+        onChange={e => props.onChange(e.target.value)}
+      >
+        <option value="newest">Newest</option>
+        <option value="rating">Rating</option>
+      </Select>
+    </div>
+  )
+}
 
 const MovieList = props => {
   if (props.loading) {
