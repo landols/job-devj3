@@ -6,21 +6,21 @@ use App\Repository\MovieRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class MoviesController extends AbstractController
 {
     public function __construct(
         private MovieRepository $movieRepository,
-        private NormalizerInterface $normalizer
+        private SerializerInterface $serializer
     ) {}
 
     #[Route('/movies', methods: ['GET'])]
     public function list(): JsonResponse
     {
         $movies = $this->movieRepository->findAll();
-        $data = $this->normalizer->normalize($movies, null, ["groups" => "default"]);
+        $data = $this->serializer->serialize($movies, "json", ["groups" => "default"]);
 
-        return new JsonResponse($data);
+        return new JsonResponse($data, json: true);
     }
 }
