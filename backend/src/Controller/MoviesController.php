@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Repository\GenreRepository;
+use App\Repository\MovieGenreRepository;
 use App\Repository\MovieRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,6 +15,8 @@ class MoviesController extends AbstractController
 {
     public function __construct(
         private MovieRepository $movieRepository,
+        private GenreRepository $genreRepository,
+        private MovieGenreRepository $movieGenreRepository,
         private SerializerInterface $serializer
     ) {}
 
@@ -20,15 +24,32 @@ class MoviesController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $sortBy = $request->query->get("sortBy", "newest");
+        $genreId = $request->query->get("genreId");
+
+        $findCriteria = [];
+        $sortField = "";
+        $sortDirection = "";
 
         if ($sortBy === "newest") {
-            $sortCriteria = ["releaseDate" => "DESC"];
+            $sortField = "releaseDate";
+            $sortDirection = "DESC";
         }
         elseif ($sortBy === "rating") {
-            $sortCriteria = ["rating" => "DESC"];
+            $sortField = "rating";
+            $sortDirection = "DESC";
         }
 
-        $movies = $this->movieRepository->findBy([], $sortCriteria);
+        if (!empty($genreId)) {
+            $movies = $this->movieRepository->findByGenre(
+                $this->genreRepository->find($genreId),
+                $sortField,
+                $sortDirection
+            );
+        }
+        else {
+            $movies = $this->movieRepository->findBy($findCriteria, [$sortField => $sortDirection]);
+        }
+
         $data = $this->serializer->serialize($movies, "json", ["groups" => "default"]);
 
         return new JsonResponse($data, json: true);

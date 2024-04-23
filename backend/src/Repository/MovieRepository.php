@@ -21,6 +21,21 @@ class MovieRepository extends ServiceEntityRepository
         parent::__construct($registry, Movie::class);
     }
 
+    /**
+     * @return Movie[] Returns an array of Movie objects
+     */
+    public function findByGenre($genre, $orderField = 'title', $orderDirection = 'ASC'): array
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.movieGenres', 'mg')
+            ->andWhere('mg.genre = :genre')
+            ->setParameter('genre', $genre)
+            ->orderBy('m.'.$orderField, $orderDirection)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     //    /**
     //     * @return Movie[] Returns an array of Movie objects
     //     */

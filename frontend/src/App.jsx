@@ -3,14 +3,17 @@ import { Button, Rating, Spinner, Label, Select } from 'flowbite-react';
 
 const App = props => {
   const [movies, setMovies] = useState([]);
+  const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('newest');
+  const [genreId, setGenreId] = useState('');
 
   const fetchMovies = () => {
     setLoading(true);
 
     let qs = new URLSearchParams({
-      sortBy
+      sortBy,
+      genreId
     })
 
     return fetch('http://localhost:8000/movies?'+qs.toString())
@@ -21,9 +24,24 @@ const App = props => {
       });
   }
 
+  const fetchGenres = () => {
+    setLoading(true);
+
+    return fetch('http://localhost:8000/genres')
+      .then(response => response.json())
+      .then(data => {
+        setGenres(data);
+        setLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
   useEffect(() => {
     fetchMovies();
-  }, [sortBy]);
+  }, [sortBy, genreId]);
 
   return (
     <Layout>
@@ -31,6 +49,12 @@ const App = props => {
       <SortBy
         value={sortBy}
         onChange={value => setSortBy(value)}
+      />
+
+      <Genres
+        genres={genres}
+        value={genreId}
+        onChange={value => setGenreId(value)}
       />
 
       <MovieList loading={loading}>
@@ -80,6 +104,28 @@ const SortBy = props => {
       >
         <option value="newest">Newest</option>
         <option value="rating">Rating</option>
+      </Select>
+    </div>
+  )
+}
+
+const Genres = props => {
+  return (
+    <div className="max-w-md mb-8 lg:mb-16">
+      <div className="mb-2 block">
+        <Label htmlFor="genre" value="Genre" />
+      </div>
+      <Select
+        id="genre"
+        required
+        value={props.value}
+        onChange={e => props.onChange(e.target.value)}
+      >
+        <option value="">Tutti i generi</option>
+
+        {props.genres.map((genre, key) => (
+          <option key={key} value={genre.id}>{genre.name}</option>
+        ))}
       </Select>
     </div>
   )
